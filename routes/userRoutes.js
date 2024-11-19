@@ -10,6 +10,17 @@ const router = express.Router()
 
 const jwtSecretKey = process.env.JWT_SECRET_KEY
 
+router.get('/profile', (req, res) => {
+    const token = req.cookies?.token;
+    if(token){
+        jwt.verify(token, jwtSecretKey, {}, (error, userData) => {
+            if(error) throw error;
+            res.json(userData)
+        })
+    } else {
+        res.status(401).json("No token Found.")
+    }
+})
 
 /**
  * POST /api/chats
@@ -20,10 +31,12 @@ router.post('/register' , async(req, res, next) => {
     try {
         //asign the token first
         const createdUser = await User.create({username, password})
-        jwt.sign({userId:createdUser._id}, jwtSecretKey, {}, 
+        jwt.sign({userId:createdUser._id, username}, jwtSecretKey, {}, 
             (err, token) => {
                 if(err) throw err
-                res.cookie('token', token).status(201).json('User Created')
+                res.cookie('token', token, {sameSite: 'none', secure:true}).status(201).json({
+                    id: createdUser._id,
+                })
             }
         )
     } catch (error) {
