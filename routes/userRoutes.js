@@ -11,6 +11,8 @@ dotenv.config()
 const router = express.Router()
 
 const jwtSecretKey = process.env.JWT_SECRET_KEY
+//Generate a random salt for the hashed password
+const bcryptSalt = bcrypt.genSaltSync(10)
 
 /**
  * GET /profile
@@ -34,6 +36,16 @@ router.get('/profile', (req, res) => {
 router.post('/login', async(req, res) => {
     const{username, password} = req.body;
     const foundUser = await User.findOne({username})
+    if(foundUser){
+        const passwordOk = bcrypt.compareSync(password, foundUser.password)
+        if(passwordOk){
+            jwt.sign({userId:foundUser._id, username}, jwtSecretKey, {}, (error, token) => {
+                res.cookie('token', token, {sameSite: 'none', secure:true}).json({
+                    id: foundUser._id,
+                })
+            })
+        }
+    }
 })
 
 /**
@@ -43,8 +55,13 @@ router.post('/login', async(req, res) => {
 router.post('/register' , async(req, res, next) => {
     const {username, password} = req.body
     try {
+        //create the hashedPassoword
+        const hashedPassword = bcrypt.hashSync(password, bcryptSalt)
         //asign the token first
-        const createdUser = await User.create({username, password})
+        const createdUser = await User.create({
+            username: username, 
+            password: hashedPassword
+        })
         jwt.sign({userId:createdUser._id, username}, jwtSecretKey, {}, 
             (err, token) => {
                 if(err) throw err
