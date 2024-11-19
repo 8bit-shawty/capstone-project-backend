@@ -2,6 +2,8 @@ import express from 'express'
 import User from '../models/User.js'
 import jwt from 'jsonwebtoken'
 import dotenv from 'dotenv'
+//import bcrypt to hash passwords
+import bcrypt from 'bcryptjs'
 
 //use jsonwebtoken for authorization between json objects
 dotenv.config()
@@ -10,6 +12,13 @@ const router = express.Router()
 
 const jwtSecretKey = process.env.JWT_SECRET_KEY
 
+/**
+ * GET /profile
+ * @description Retrieve authenticated user's profile data by verifying the JWT token in cookies.
+ * @returns {Object} User data (e.g., userId and username) if the token is valid.
+ * @returns {String} "No token Found" if the token is missing.
+ * @throws {Error} If the token is invalid or verification fails.
+ */
 router.get('/profile', (req, res) => {
     const token = req.cookies?.token;
     if(token){
@@ -20,6 +29,11 @@ router.get('/profile', (req, res) => {
     } else {
         res.status(401).json("No token Found.")
     }
+})
+
+router.post('/login', async(req, res) => {
+    const{username, password} = req.body;
+    const foundUser = await User.findOne({username})
 })
 
 /**
