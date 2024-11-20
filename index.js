@@ -4,6 +4,8 @@ import { connect } from './db/connect.js'
 import cors from 'cors'
 import userRouter from './routes/userRoutes.js'
 import cookieParser from 'cookie-parser'
+import {WebSocketServer} from 'ws'
+
 
 
 dotenv.config()
@@ -30,7 +32,25 @@ app.get("/test", (req, res) => {
 })
 
 
-app.listen(PORT, () => {
+const server = app.listen(PORT, () => {
     console.log(`Server running on port: ${PORT}`)
+})
+
+//use WebsocketServer from websocket library
+const wss = new WebSocketServer({server})
+
+wss.on('connection', (connection, req) => {
+    // console.log('Connected')
+    // connection.send('Hello')
+    // console.log(req.headers)
+    const cookies = req.headers.cookie
+    if(cookies){
+        const tokenCookieString = cookies.split(';').find(str => str.startsWith('token='))
+        // console.log(tokenCookieString)
+        if(tokenCookieString){
+            const token = tokenCookieString.split('=')[1]
+            console.log(token)
+        }
+    }
 })
 
