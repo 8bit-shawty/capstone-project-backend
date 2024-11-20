@@ -5,6 +5,8 @@ import dotenv from 'dotenv'
 //import bcrypt to hash passwords
 import bcrypt from 'bcryptjs'
 
+import {WebSocketServer} from 'ws'
+
 //use jsonwebtoken for authorization between json objects
 dotenv.config()
 
@@ -76,4 +78,43 @@ router.post('/register' , async(req, res, next) => {
     }
 })
 
-export default router
+//use WebsocketServer from websocket library
+export default(server) => {
+    const wss = new WebSocketServer({server})
+    
+    wss.on('connection', (connection, req) => {
+        // console.log('Connected')
+        // connection.send('Hello')
+        // console.log(req.headers)
+        const cookies = req.headers.cookie
+        if(cookies){
+            const tokenCookieString = cookies.split(';').find(str => str.startsWith('token='))
+            // console.log(tokenCookieString)
+            if(tokenCookieString){
+                const token = tokenCookieString.split('=')[1]
+                // console.log(token)
+                if(token){
+                    jwt.verify(token, jwtSecretKey, {}, (error, userData) => {
+                        if (error) throw error;
+                        // console.log(userData)
+                        const{userId, username} = userData;
+                        connection.userId = userId
+                        connection.username = username
+                    })  
+                }
+            }
+        }
+
+        //we want to see all of the clients that are online
+        //we have to turn these client objects into an array
+        //then we map through to see who is online
+        // console.log([...wss.clients].map(connection => connection.username))
+        [...wss.clients].forEach(client => {
+            client.send(JSON.stringify({
+                online: [...wss.clients].map(c => ({userId: c.userId, username:c.username}))
+            }))
+        })
+    })
+    return router
+}
+
