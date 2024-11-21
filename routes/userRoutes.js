@@ -86,6 +86,8 @@ export default(server) => {
         // console.log('Connected')
         // connection.send('Hello')
         // console.log(req.headers)
+
+        //read username and id from the cookie 
         const cookies = req.headers.cookie
         if(cookies){
             const tokenCookieString = cookies.split(';').find(str => str.startsWith('token='))
@@ -105,10 +107,22 @@ export default(server) => {
             }
         }
 
+        connection.on('message', (message) =>{
+            const messageData = JSON.parse(message.toString())
+            const {recipient, text} = messageData
+            console.log(messageData)
+
+            if(recipient && text) {
+                [...wss.clients]
+                    .filter(c => c.userId === recipient)
+                    .forEach(c => c.send(JSON.stringify({text, sender: connection.userId})))
+            }
+        })
         //we want to see all of the clients that are online
         //we have to turn these client objects into an array
         //then we map through to see who is online
         // console.log([...wss.clients].map(connection => connection.username))
+        //I also want to notify everyone about online users when someone connects
         [...wss.clients].forEach(client => {
             client.send(JSON.stringify({
                 online: [...wss.clients].map(c => ({userId: c.userId, username:c.username}))
@@ -117,4 +131,6 @@ export default(server) => {
     })
     return router
 }
+
+
 
