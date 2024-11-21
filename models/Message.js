@@ -12,6 +12,6 @@ const MessageSchema = new mongoose.Schema({
     text: String,
 }, {timestamps: true})
 
-const MessageModel = mongoose.model("User", UserSchema)
+const MessageModel = mongoose.model("Message", MessageSchema)
 
-export default UserModel
+export default MessageModel
