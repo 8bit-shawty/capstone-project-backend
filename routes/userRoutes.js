@@ -1,5 +1,6 @@
 import express from 'express'
 import User from '../models/User.js'
+import Message from '../models/Message.js'
 import jwt from 'jsonwebtoken'
 import dotenv from 'dotenv'
 //import bcrypt to hash passwords
@@ -107,17 +108,28 @@ export default(server) => {
             }
         }
 
-        connection.on('message', (message) =>{
+        connection.on('message', async(message) =>{
             const messageData = JSON.parse(message.toString())
             const {recipient, text} = messageData
             console.log(messageData)
 
             if(recipient && text) {
+                //Save our message
+                const messageDocument = await Message.create({
+                    sender:connection.userId,
+                    recipient,
+                    text,
+                });
                 [...wss.clients]
                     .filter(c => c.userId === recipient)
-                    .forEach(c => c.send(JSON.stringify({text, sender: connection.userId})))
+                    .forEach(c => c.send(JSON.stringify({
+                        text, 
+                        sender: connection.userId,
+                        recipient,
+                        id: messageDocument._id,
+                    })))
             }
-        })
+        });
         //we want to see all of the clients that are online
         //we have to turn these client objects into an array
         //then we map through to see who is online
