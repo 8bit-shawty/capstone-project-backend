@@ -36,6 +36,10 @@ router.get('/profile', (req, res) => {
     }
 })
 
+router.get('/messages/:id', (req, res) => {
+    res.json(req.params)
+})
+
 router.post('/login', async(req, res) => {
     const{username, password} = req.body;
     const foundUser = await User.findOne({username})
@@ -111,7 +115,7 @@ export default(server) => {
         connection.on('message', async(message) =>{
             const messageData = JSON.parse(message.toString())
             const {recipient, text} = messageData
-            console.log(messageData)
+            // console.log(messageData)
 
             if(recipient && text) {
                 //Save our message
