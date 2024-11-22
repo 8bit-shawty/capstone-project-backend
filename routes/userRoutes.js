@@ -34,10 +34,43 @@ router.get('/profile', (req, res) => {
     } else {
         res.status(401).json("No token Found.")
     }
-})
+}); 
 
-router.get('/messages/:id', (req, res) => {
-    res.json(req.params)
+router.get('/messages/:userId', async (req, res) => {
+    const { userId } = req.params;
+    const token = req.cookies?.token;
+
+    if (!token) {
+        return res.status(401).json({ error: 'No token provided' });
+    }
+
+    try {
+        // Verify token and extract user data
+        const userData = await new Promise((resolve, reject) => {
+            jwt.verify(token, jwtSecretKey, {}, (err, decoded) => {
+                if (err) return reject(err);
+                resolve(decoded);
+            });
+        });
+
+        const ourUserId = userData.userId;
+        // console.log({userId, ourUserId})
+
+        // Query messages
+        const messages = await Message.find({
+            sender: { $in: [userId, ourUserId] },
+            recipient: { $in: [userId, ourUserId] },
+        }).sort({ createdAt: 1 });
+
+        res.json(messages);
+    } catch (err) {
+        res.status(401).json({ error: 'Invalid token' });
+    }
+});
+
+router.get('/users', async(req, res) => {
+    const users = await User.find({}, {'_id': true, username: true})
+    res.json(users)
 })
 
 router.post('/login', async(req, res) => {
@@ -130,7 +163,7 @@ export default(server) => {
                         text, 
                         sender: connection.userId,
                         recipient,
-                        id: messageDocument._id,
+                        _id: messageDocument._id,
                     })))
             }
         });
