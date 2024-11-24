@@ -116,6 +116,32 @@ router.post('/register' , async(req, res, next) => {
     }
 })
 
+//Edit username
+router.put('/update', async(req, res) => {
+    const {userId, newUsername} = req.body;
+    try {
+        const updatedUser = await User.findByIdAndUpdate(
+            userId,
+            {username: newUsername},
+            {new: true}
+        );
+        res.json(updatedUser)
+    } catch (error) {
+        res.status(500).json({error: 'Error updating username'})
+    }
+})
+
+//Delete user
+router.delete('/delete/:userId', async(req, res) => {
+    const {userId} = req.params;
+    try{
+        await User.findByIdAndDelete(userId)
+        res.json({message: 'Account deleted successfully'})
+    } catch(error){
+        res.status(500).json({error: 'Error deleting your account'})
+    }
+})
+
 //logout
 router.post('/logout', (req, res) => {
     res.cookie('token', '', {sameSite: 'none', secure:true}).json('Logout successful')
