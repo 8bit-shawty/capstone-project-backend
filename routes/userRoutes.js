@@ -116,6 +116,11 @@ router.post('/register' , async(req, res, next) => {
     }
 })
 
+//logout
+router.post('/logout', (req, res) => {
+    res.cookie('token', '', {sameSite: 'none', secure:true}).json('Logout successful')
+})
+
 //use WebsocketServer from websocket library
 export default(server) => {
     const wss = new WebSocketServer({server})
