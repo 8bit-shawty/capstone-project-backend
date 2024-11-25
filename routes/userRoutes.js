@@ -142,7 +142,7 @@ router.put('/update', async(req, res) => {
             {username: newUsername},
             {new: true}
         );
-        res.json(updatedUser)
+        res.json({ username: updatedUser.username })
     } catch (error) {
         res.status(500).json({error: 'Error updating username'})
     }
@@ -197,6 +197,8 @@ export default(server) => {
             const messageData = JSON.parse(message.toString())
             const {recipient, text} = messageData
             // console.log(messageData)
+
+            console.log("Received message on server:", messageData); // Debug received message
 
             if(recipient && text) {
                 //Save our message
