@@ -73,7 +73,7 @@ router.get('/api/news', async(req, res) => {
     try {
         const { data } = await axios.get("https://api.thenewsapi.com/v1/news/top", {
             params: {
-                api_token: "XRajoQs8b3dc3GuT1jMLGyTJioqQf06115EKdETS",
+                api_token: process.env.API_TOKEN,
                 language: "en",
                 page: 1,
             },
