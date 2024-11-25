@@ -5,6 +5,7 @@ import jwt from 'jsonwebtoken'
 import dotenv from 'dotenv'
 //import bcrypt to hash passwords
 import bcrypt from 'bcryptjs'
+import axios from 'axios'
 
 import {WebSocketServer} from 'ws'
 
@@ -67,6 +68,22 @@ router.get('/messages/:userId', async (req, res) => {
         res.status(401).json({ error: 'Invalid token' });
     }
 });
+
+router.get('/api/news', async(req, res) => {
+    try {
+        const { data } = await axios.get("https://api.thenewsapi.com/v1/news/top", {
+            params: {
+                api_token: "XRajoQs8b3dc3GuT1jMLGyTJioqQf06115EKdETS",
+                language: "en",
+                page: 1,
+            },
+        });
+        res.json(data);
+    } catch (error) {
+        console.error("Error fetching news:", error);
+        res.status(500).send("Error fetching news");
+    }
+})
 
 router.get('/users', async(req, res) => {
     const users = await User.find({}, {'_id': true, username: true})
